@@ -1,11 +1,23 @@
+//
+// The server was hosted at AWS EC2 South America Server, some delay may occur depending on network circunstances.
+//
+//
+// Required libraries imports.
+//
 const { ApolloServer, gql } = require("apollo-server");
 const MongoClient = require('mongodb').MongoClient;
 const { PubSub } = require('apollo-server');
 const pubsub = new PubSub();
-// Change the URL to your MongoDB Atlas cluster.
+
+//
+// Properties
+//
 const url = 'mongodb+srv://upwork01satlasuser:lJx9gMcQ310X3AkK@cluster01-rinri.gcp.mongodb.net/test?retryWrites=true&w=majority';
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
+//
+// Connection to the Provided Database.
+//
 client.connect(function (err) {
   if (err) {
     console.log(err)
@@ -15,7 +27,9 @@ client.connect(function (err) {
   }
 });
 
-
+//
+// MongoDB GraphQL Schema.
+//
 const typeDefs = gql`
   type Subscription {
     objects: [Object]
@@ -49,14 +63,23 @@ const typeDefs = gql`
 
 `;  
 
+//
+// Constant name for socket subscription.
+//
 const OBJECT_CHANGED = 'objects'
 
+//
+// Filter used for returning objects from query and for the subscription call from the client side.
+//
 let mainFilter = {
   category: {  
     $in: ''
   }
 }
 
+//
+// Main functions contemplating the CRUD operation along with the Apollo publisher.
+//
 const resolvers = {
   Subscription: {
     objects: {
@@ -119,9 +142,15 @@ const resolvers = {
   }
 }
 
+//
+// Apollo Server instantiation.
+// 
 const server = new ApolloServer({
   typeDefs,
   resolvers
 });
 
+//
+// Apollo Server initiator.
+//
 server.listen(3000).then(({ url }) => console.log(`Server running at ${ url } and subscriptions at ${ server.subscriptionsPath }`));
