@@ -2,6 +2,7 @@ const { ApolloServer, gql } = require("apollo-server");
 const MongoClient = require('mongodb').MongoClient;
 const { PubSub } = require('apollo-server');
 const pubsub = new PubSub();
+// Change the URL to your MongoDB Atlas cluster.
 const url = 'mongodb+srv://upwork01satlasuser:lJx9gMcQ310X3AkK@cluster01-rinri.gcp.mongodb.net/test?retryWrites=true&w=majority';
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -67,7 +68,6 @@ const resolvers = {
       return await db.collection('Objects').find().toArray().then(res => { return res });
     },
     objectsByCategories: async (root, category) => {
-      console.log(category);
       mainFilter.category.$in = category.category
       return await db.collection('Objects').find(mainFilter).toArray().then(res => { return res });  
     }
