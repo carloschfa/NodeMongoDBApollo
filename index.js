@@ -51,9 +51,9 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    insertObject(objectId: String!, filter: [String]!, category: String!, text: String!, number: Int!, boolean: Boolean!, createdAt: String!): MutationResponse!
-    updateObject(objectId: String!, filter: [String]! text: String!, number: Int!, boolean: Boolean!, updatedAt: String!): MutationResponse!
-    deleteObject(objectId: String!, filter: [String]!): MutationResponse!
+    insertObject(objectId: String!, category: String!, text: String!, number: Int!, boolean: Boolean!, createdAt: String!): MutationResponse!
+    updateObject(objectId: String!, text: String!, number: Int!, boolean: Boolean!, updatedAt: String!): MutationResponse!
+    deleteObject(objectId: String!): MutationResponse!
   }
 
   type MutationResponse {
@@ -69,7 +69,7 @@ const typeDefs = gql`
 const OBJECT_CHANGED = 'objects'
 
 //
-// Filter used for returning objects from query and for the subscription call from the client side.
+// Filter used for returning objects from query.
 //
 let mainFilter = {
   category: {  
@@ -99,8 +99,7 @@ const resolvers = {
     insertObject: async (root, args, context, info) => {
       const res = await db.collection('Objects').insertOne(args)
       if (res.insertedCount > 0) {
-        mainFilter.category.$in = args.filter
-        let objects = await db.collection('Objects').find(mainFilter).toArray().then(res => { return res });  
+        let objects = await db.collection('Objects').find().toArray().then(res => { return res });  
         await pubsub.publish(OBJECT_CHANGED, { objects: objects })
         return { success: true, message: 'Data was inserted.' }
       } else {
@@ -119,8 +118,7 @@ const resolvers = {
       }
       let res = await db.collection('Objects').updateOne(filter, data)
       if (res.modifiedCount > 0) {
-        mainFilter.category.$in = args.filter
-        let objects = await db.collection('Objects').find(mainFilter).toArray().then(res => { return res });  
+        let objects = await db.collection('Objects').find().toArray().then(res => { return res });  
         await pubsub.publish(OBJECT_CHANGED, { objects: objects })
         return { success: true, message: 'Data was updated.' }
       } else  {
@@ -131,8 +129,7 @@ const resolvers = {
       const filter = { objectId: args.objectId }
       let res = await db.collection('Objects').deleteOne(filter)
       if (res.deletedCount > 0) {
-        mainFilter.category.$in = args.filter
-        let objects = await db.collection('Objects').find(mainFilter).toArray().then(res => { return res });  
+        let objects = await db.collection('Objects').find().toArray().then(res => { return res });  
         await pubsub.publish(OBJECT_CHANGED, { objects: objects })
         return { success: true, message: 'Data was deleted.' }
       } else {
